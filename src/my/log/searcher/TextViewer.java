@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Класс наследующий JPanel и отображающей панель с вкладками - содержимым файлов ^^^^^^^^^^^^
+ * Класс, наследующий JPanel и отображающий TextArea с содержимым файла и панель навигации по файлу - NavigationPanel
  * Его основная фишка в том, что файл в случае большого размера добавляется в JTextArea не целиком,
  * а по мере прокрутки JScrollPane
  */
@@ -19,6 +19,8 @@ public class TextViewer extends JPanel {
     JLabel loading;
     JTextArea textArea;
     JScrollPane scrollPane;
+    NavigationPanel navPanel;
+    JLabel infoLabel;
     //количество символов, добавляемых при прокрутке до 95% JScrollPane
     int step=5000000;
     int startSymbol=0;
@@ -59,19 +61,29 @@ public class TextViewer extends JPanel {
     public void insertContentPart(int start,int finish){
         if(scrollPane==null){
             remove(loading);
+
             textArea=new JTextArea();
             scrollPane=new JScrollPane(textArea);
             add(BorderLayout.CENTER,scrollPane);
             scrollPane.getVerticalScrollBar().addAdjustmentListener(new appendNewContentTextArea());
+
+            navPanel= new NavigationPanel(this);
+            add(BorderLayout.NORTH,navPanel);
+
+            infoLabel= new JLabel("");
+            add(BorderLayout.SOUTH,infoLabel);
             revalidate();
         }
-        if(finish>fileContent.length()) {
+        if(finish>=fileContent.length()) {
             finish = fileContent.length();
             endOfFile=true;
-        }if(start<0)
+            infoLabel.setText("");
+        }else{
+            infoLabel.setText("Внимание! Файл загружен не полностью, и будет подгружаться по мере просмотра");
+        }
+        if(start<0)
             start=0;
         textArea.append(fileContent.substring(start,finish));
-
     }
     /**
      * Обработчик, вставляющий контент в TextArea
