@@ -8,7 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Класс наследующий JPanel и отображающей панель с вкладками - содержимым файлов
+ * Класс, наследующий JPanel и отображающей панель с вкладками - содержимым файлов
  */
 public class TabbedPanel extends JPanel {
     JTabbedPane tabbedPane = new JTabbedPane();
