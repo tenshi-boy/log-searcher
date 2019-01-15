@@ -33,7 +33,7 @@ public class TabbedPanel extends JPanel {
     }
 
     /**
-     * Метод, добавляющий в TabbedPanel новый таб с панелью открытого файла - экземпляром TextEditor и табкомпонентом - экземпляром TabPanel
+     * Метод, добавляющий в TabbedPanel новый таб с панелью открытого файла - экземпляром TextViewer и табкомпонентом - экземпляром TabPanel
      * @param file
      */
     public void openFileInNewTab(File file){
