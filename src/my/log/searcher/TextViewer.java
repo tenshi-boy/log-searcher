@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  * а по мере прокрутки JScrollPane
  */
 public class TextViewer extends JPanel {
+    File openedFile;
     JLabel loading;
     JTextArea textArea;
     JScrollPane scrollPane;
@@ -39,6 +40,7 @@ public class TextViewer extends JPanel {
      * @param file открываемый файл
      */
     public TextViewer(File file){
+        openedFile=file;
         setLayout(new BorderLayout());
         try {
             ImageIcon imageIcon = new ImageIcon(this.getClass().getResource("/img/loading.gif"));
