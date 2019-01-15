@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 /**
- * Класс наследующий JPanel и отображающей древо файлов выбранной дирректори и поле для ввода расширения
+ * Класс, наследующий JPanel и отображающей древо файлов выбранной дирректори и поле для ввода расширения
  */
 public class TreePanel extends JPanel{
     JTextField extension;
