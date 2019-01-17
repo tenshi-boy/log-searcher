@@ -1,6 +1,7 @@
 package my.log.searcher;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -9,6 +10,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -18,8 +21,10 @@ import java.io.FilenameFilter;
  * Класс, наследующий JPanel и отображающей древо файлов выбранной дирректори и поле для ввода расширения
  */
 public class TreePanel extends JPanel{
-    JTextField extension;
-    String extensionPlaceholder="Введите расширение";
+    JLabel filterHelper = new JLabel("<html><span style='font-size:11px'>Поиск по критериям:</span></html>");
+    JTextFieldPlaceholder extension;
+    JTextFieldPlaceholder filterText;
+    JButton acceptFilterBtn;
     JTree tree;
     File chosenDir;
     TabbedPanel tabbedPanel;
@@ -30,12 +35,31 @@ public class TreePanel extends JPanel{
         tree = new JTree();
         tree.setShowsRootHandles(true);
         tree.addTreeSelectionListener(new SelectedTreeFile());
-        extension = new JTextField(extensionPlaceholder,15);
+
+        JPanel filterPanel = new JPanel();
+        filterPanel.setLayout(new GridLayout(4, 1,3,3));
+        filterPanel.setBorder(new EmptyBorder(0, 2, 3, 2));
+        add(filterPanel,BorderLayout.NORTH);
+
+        extension = new JTextFieldPlaceholder("Расширение файла",15);
         extension.setForeground(Color.GRAY);
-        extension.getDocument().addDocumentListener(new extensionChange());
-        extension.addFocusListener(new extensionPlaceholder());
-        add(extension,BorderLayout.NORTH);
+        //extension.getDocument().addDocumentListener(new extensionChange());
+        extension.addFocusListener(new placeholderHandler());
+
+        filterText = new JTextFieldPlaceholder("Слово в файле",15);
+        filterText.setForeground(Color.GRAY);
+        filterText.addFocusListener(new placeholderHandler());
+
+        acceptFilterBtn = new JButton("Искать");
+        acceptFilterBtn.addActionListener(new acceptFilter());
+
+        filterPanel.add(filterHelper);
+        filterPanel.add(extension);
+        filterPanel.add(filterText);
+        filterPanel.add(acceptFilterBtn);
+
         add(new JScrollPane(tree), BorderLayout.CENTER);
+        setMinimumSize(new Dimension(160,0));
         fillTreeModel();
     }
 
@@ -45,7 +69,7 @@ public class TreePanel extends JPanel{
     public void fillTreeModel(){
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(new FileNode(chosenDir));
         DefaultTreeModel treeModel = new DefaultTreeModel(root);
-        if(extension.getText().isEmpty() || extension.getText().equals(extensionPlaceholder)){
+        if(extension.getText().isEmpty() || extension.getText().equals(extension.getPlaceholder())){
             fillTreeNodeNoExtension(chosenDir,root);
         }else{
             fillTreeNodeWithExtension(chosenDir,extension.getText(),root);
@@ -131,20 +155,33 @@ public class TreePanel extends JPanel{
     /**
      * Обработчик, выводящий placeholder
      */
-    class extensionPlaceholder implements FocusListener{
+    class placeholderHandler implements FocusListener{
         @Override
         public void focusGained(FocusEvent e) {
-            if (extension.getText().equals(extensionPlaceholder)) {
-                extension.setText("");
-                extension.setForeground(Color.BLACK);
+            JTextFieldPlaceholder placeholder = (JTextFieldPlaceholder)e.getComponent();
+            if (placeholder.getText().isEmpty()) {
+                placeholder.setText("");
+                placeholder.setForeground(Color.BLACK);
             }
         }
         @Override
         public void focusLost(FocusEvent e) {
-            if (extension.getText().isEmpty()) {
-                extension.setForeground(Color.GRAY);
-                extension.setText(extensionPlaceholder);
+            JTextFieldPlaceholder placeholder = (JTextFieldPlaceholder)e.getComponent();
+            if (placeholder.getText().isEmpty()) {
+                placeholder.setForeground(Color.GRAY);
+                placeholder.setText(placeholder.getPlaceholder());
             }
+        }
+    }
+
+    /**
+     * Обработчик, применяющий фильтр
+     */
+    class acceptFilter implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println(extension.getText());
+            System.out.println(filterText.getText());
         }
     }
     /**
@@ -173,10 +210,34 @@ class FileNode {
     @Override
     public String toString() {
         String name = file.getName();
-        if (name.equals("")) {
+        if (name.isEmpty()) {
             return file.getAbsolutePath();
         } else {
             return name;
+        }
+    }
+}
+
+class JTextFieldPlaceholder extends JTextField {
+    private String placeholder;
+    JTextFieldPlaceholder(String placeholder, int columns){
+        super(placeholder,columns);
+        setPlaceholder(placeholder);
+    }
+
+    public void setPlaceholder(String placeholder){
+        this.placeholder=placeholder;
+    }
+
+    public String getPlaceholder(){
+        return placeholder;
+    }
+
+    public String getText(){
+        if(super.getText().equals(placeholder)){
+            return "";
+        }else{
+            return super.getText();
         }
     }
 }
