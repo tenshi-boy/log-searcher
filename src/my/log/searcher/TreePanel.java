@@ -2,8 +2,6 @@ package my.log.searcher;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -14,8 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Класс, наследующий JPanel и отображающей древо файлов выбранной дирректори и поле для ввода расширения
@@ -43,7 +41,6 @@ public class TreePanel extends JPanel{
 
         extension = new JTextFieldPlaceholder("Расширение файла",15);
         extension.setForeground(Color.GRAY);
-        //extension.getDocument().addDocumentListener(new extensionChange());
         extension.addFocusListener(new placeholderHandler());
 
         filterText = new JTextFieldPlaceholder("Слово в файле",15);
@@ -51,71 +48,147 @@ public class TreePanel extends JPanel{
         filterText.addFocusListener(new placeholderHandler());
 
         acceptFilterBtn = new JButton("Искать");
-        acceptFilterBtn.addActionListener(new acceptFilter());
+        acceptFilterBtn.addActionListener(new AcceptFilter(this));
 
         filterPanel.add(filterHelper);
         filterPanel.add(extension);
         filterPanel.add(filterText);
         filterPanel.add(acceptFilterBtn);
-
         add(new JScrollPane(tree), BorderLayout.CENTER);
         setMinimumSize(new Dimension(160,0));
-        fillTreeModel();
+
+        Runnable fillTree = new FillTreeThread(this);
+        Thread fillTreeThread = new Thread(fillTree);
+        fillTreeThread.start();
     }
 
     /**
-     * Метод пере/создает древо для компонента JTree
+     * Обработчик, перерисовывающий JTree
      */
-    public void fillTreeModel(){
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(new FileNode(chosenDir));
-        DefaultTreeModel treeModel = new DefaultTreeModel(root);
-        if(extension.getText().isEmpty() || extension.getText().equals(extension.getPlaceholder())){
-            fillTreeNodeNoExtension(chosenDir,root);
-        }else{
-            fillTreeNodeWithExtension(chosenDir,extension.getText(),root);
+    class AcceptFilter implements ActionListener{
+        TreePanel treePanel;
+        public AcceptFilter(TreePanel treePanel){
+            this.treePanel=treePanel;
         }
-        tree.setModel(treeModel);
-    }
 
-
-    /**
-     * Метод для построения дерева из всех файлов выбранной дирректории
-     * @param chosenDirArg - выбранная дирректория
-     * @param node - древо
-     */
-    public void fillTreeNodeNoExtension(File chosenDirArg,DefaultMutableTreeNode node){
-        for (File file : chosenDirArg.listFiles()) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
-            node.add(childNode);
-            if(file.isDirectory() && file.listFiles()!=null && file.listFiles().length>0) {
-                fillTreeNodeNoExtension(file, childNode);
-            }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            treePanel.acceptFilterBtn.setEnabled(false);
+            Runnable fillTree = new FillTreeThread(treePanel);
+            Thread fillTreeThread = new Thread(fillTree);
+            fillTreeThread.start();
         }
     }
+
     /**
-     * Метод для построения дерева из файлов выбранной дирректории, соответствующих расширению extension
-     * @param chosenDirArg - выбранная дирректория
-     * @param extensionArg - расширение, используемое для фильтрации
-     * @param node - древо
+     * Класс, который в отдельном потоке применяет к JTree модель с узлами(дирректориями и файлами) соответствующи фильтру
      */
-    public boolean fillTreeNodeWithExtension(File chosenDirArg,String extensionArg,DefaultMutableTreeNode node){
-        boolean extFilesFound=false;
-        for (File file : chosenDirArg.listFiles()) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
-            if (file.isDirectory() && file.listFiles()!=null && file.listFiles().length>0) {
-                if(fillTreeNodeWithExtension(file,extensionArg,childNode)){
-                    extFilesFound=true;
-                    node.add(childNode);
+    class FillTreeThread implements Runnable{
+        TreePanel treePanel;
+
+        /**
+         * @param treePanel - объект основного класса, содержащий JTree, выбранную дирректорию и параметры фильтра
+         */
+        public FillTreeThread(TreePanel treePanel){
+            this.treePanel=treePanel;
+        }
+
+        @Override
+        public void run(){
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode(new FileNode(chosenDir));
+            DefaultTreeModel treeModel = new DefaultTreeModel(root);
+            fillTree(treePanel.chosenDir,treePanel.extension.getText(),treePanel.filterText.getText(),root);
+            treePanel.acceptFilterBtn.setEnabled(true);
+            tree.setModel(treeModel);
+        }
+
+        /**
+         * Рекурсивный метод, проверяющий дирректории в chosenDirArg, и добавляющий в дерево узлы с этими дирректориями,
+         * если в них найдены файлы соответствующие фильтру(проверяется возвращаемое значение метода)
+         * @param chosenDirArg
+         * @param extensionArg
+         * @param filterTextArg
+         * @param node
+         * @return
+         */
+        public boolean fillTree(File chosenDirArg,String extensionArg, String filterTextArg,DefaultMutableTreeNode node){
+            boolean filterMatching=false;
+            //цикл по дирректориям, вызывающий рекурсию
+            for (File file : chosenDirArg.listFiles()) {
+                if (file.isDirectory() && file.listFiles()!=null && file.listFiles().length>0) {
+                    DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
+                    if(fillTree(file,extensionArg,filterTextArg,childNode)){
+                        filterMatching=true;
+                        node.add(childNode);
+                    }
                 }
             }
+            //цикл, собирающий файлы соответствующие расширению в ArrayList<File> extensionMatching
+            ArrayList<File> extensionMatching = new ArrayList();
+            if(!extensionArg.isEmpty()) {
+                for (File file : chosenDirArg.listFiles(new ExtMaskFilter(extensionArg))) {
+                    if(!file.isDirectory()) {
+                        extensionMatching.add(file);
+                    }
+                }
+            }
+            //цикл, собирающий файлы содержащие искомую строку в ArrayList<File> filterTextMatching
+            ArrayList<File> filterTextMatching = new ArrayList();
+            if(!filterTextArg.isEmpty()) {
+                ArrayList<Thread> threadsTextMatching = new ArrayList();
+                for (File file : chosenDirArg.listFiles()) {
+                    if(!file.isDirectory()) {
+                        Runnable readFile = new CheckForFilterMatchingThread(file, filterTextArg, filterTextMatching);
+                        Thread readFileThread = new Thread(readFile);
+                        threadsTextMatching.add(readFileThread);
+                        readFileThread.start();
+                    }
+                }
+                for(Thread thread : threadsTextMatching){
+                    try {
+                        thread.join();
+                    } catch ( InterruptedException e ) {
+                        JOptionPane.showMessageDialog(null, e.getLocalizedMessage());
+                    }
+                }
+            }
+
+            if(extensionArg.isEmpty() && filterTextArg.isEmpty()){
+                for (File file : chosenDirArg.listFiles()) {
+                    if(!file.isDirectory()) {
+                        DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
+                        node.add(childNode);
+                        filterMatching=true;
+                    }
+                }
+            }else if(extensionArg.isEmpty()){
+                for (File file : filterTextMatching){
+                    DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
+                    node.add(childNode);
+                    filterMatching=true;
+                }
+            }else if(filterTextArg.isEmpty()){
+                for (File file : extensionMatching){
+                    DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
+                    node.add(childNode);
+                    filterMatching=true;
+                }
+            }else{
+                for (File file : filterTextMatching){
+                    if(extensionMatching.contains(file)) {
+                        DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
+                        node.add(childNode);
+                        filterMatching = true;
+                    }
+                }
+            }
+            return filterMatching;
         }
-        for (File file : chosenDirArg.listFiles(new ExtMaskFilter(extensionArg))) {
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(new FileNode(file));
-            node.add(childNode);
-            extFilesFound=true;
-        }
-        return extFilesFound;
     }
+
+    /**
+     * Класс фильтр по расширению
+     */
     class ExtMaskFilter implements FilenameFilter {
         String mask;
 
@@ -126,34 +199,50 @@ public class TreePanel extends JPanel{
                 mask = "." + Mask;
             }
         }
-
+        @Override
         public boolean accept(File f, String name) {
             return(name.indexOf(mask) > 0);
         }
     }
 
     /**
-     * Обработчик, вызывающий метод перерисовывающий древо
+     * Класс, который ищет строку в файле в отдельном потоке, и, в случае нахождения, заполняет ArrayList<File> filterTextMatching
      */
-    class extensionChange implements DocumentListener{
-        @Override
-        public void insertUpdate(DocumentEvent e) {
-            fillTreeModel();
-        }
+    class CheckForFilterMatchingThread implements Runnable{
+        File file;
+        String filterText;
+        ArrayList<File> filterTextMatching;
 
-        @Override
-        public void removeUpdate(DocumentEvent e) {
-            fillTreeModel();
+        /**
+         * @param file - файл, в котором производится поиск
+         * @param filterText - искомая строка
+         * @param filterTextMatching - список файлов, содержащих строку
+         */
+        public CheckForFilterMatchingThread(File file,String filterText, ArrayList<File> filterTextMatching){
+            this.file=file;
+            this.filterText=filterText;
+            this.filterTextMatching=filterTextMatching;
         }
-
         @Override
-        public void changedUpdate(DocumentEvent e) {
-            fillTreeModel();
+        public void run(){
+            try {
+                BufferedReader in = new BufferedReader(new FileReader(file.getAbsoluteFile()));
+                String s;
+                while ((s = in.readLine()) != null){
+                    if(s.toUpperCase().indexOf(filterText.toUpperCase())>=0){
+                        filterTextMatching.add(file);
+                        break;
+                    }
+                }
+                in.close();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, e.getLocalizedMessage());
+            }
         }
     }
 
     /**
-     * Обработчик, выводящий placeholder
+     * Обработчик, который показывает/прячет плейсхолдер при фокусе и расфукосировке на JTextFieldPlaceholder
      */
     class placeholderHandler implements FocusListener{
         @Override
@@ -175,19 +264,10 @@ public class TreePanel extends JPanel{
     }
 
     /**
-     * Обработчик, применяющий фильтр
-     */
-    class acceptFilter implements ActionListener{
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            System.out.println(extension.getText());
-            System.out.println(filterText.getText());
-        }
-    }
-    /**
      * Обработчик древа, после выбора узла дерева(файла) добавляет в tabbedPanel новую панель tabPanel с содержимым файла
      */
     class SelectedTreeFile implements TreeSelectionListener {
+        @Override
         public void valueChanged(TreeSelectionEvent e) {
             TreePath treePath = e.getNewLeadSelectionPath();
             if(treePath==null)
@@ -201,6 +281,38 @@ public class TreePanel extends JPanel{
         }
     }
 }
+
+/**
+ * Класс, дополняющий JTextField полем placeholder
+ */
+class JTextFieldPlaceholder extends JTextField {
+    private String placeholder;
+    JTextFieldPlaceholder(String placeholder, int columns){
+        super(placeholder,columns);
+        setPlaceholder(placeholder);
+    }
+
+    public void setPlaceholder(String placeholder){
+        this.placeholder=placeholder;
+    }
+
+    public String getPlaceholder(){
+        return placeholder;
+    }
+
+    @Override
+    public String getText(){
+        if(super.getText().equals(placeholder)){
+            return "";
+        }else{
+            return super.getText();
+        }
+    }
+}
+
+/**
+ * Класс, использующийся для наименования узлов древа
+ */
 class FileNode {
     private File file;
 
@@ -218,27 +330,4 @@ class FileNode {
     }
 }
 
-class JTextFieldPlaceholder extends JTextField {
-    private String placeholder;
-    JTextFieldPlaceholder(String placeholder, int columns){
-        super(placeholder,columns);
-        setPlaceholder(placeholder);
-    }
-
-    public void setPlaceholder(String placeholder){
-        this.placeholder=placeholder;
-    }
-
-    public String getPlaceholder(){
-        return placeholder;
-    }
-
-    public String getText(){
-        if(super.getText().equals(placeholder)){
-            return "";
-        }else{
-            return super.getText();
-        }
-    }
-}
 
