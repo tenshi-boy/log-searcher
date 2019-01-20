@@ -99,7 +99,7 @@ class TabPanel extends JPanel {
                         contentToSave = currentTextViewer.textArea.getText();
                     } else {
                         contentToSave = currentTextViewer.textArea.getText() +
-                                currentTextViewer.fileContent.substring(currentTextViewer.finishSymbol, currentTextViewer.fileContent.length());
+                                currentTextViewer.fileContent.substring(currentTextViewer.finishSymbol);
                     }
                     JFileChooser fc = new JFileChooser();
                     fc.setSelectedFile(currentTextViewer.openedFile);
@@ -111,9 +111,10 @@ class TabPanel extends JPanel {
                     if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
                         try (FileWriter fw = new FileWriter(fc.getSelectedFile())) {
                             fw.write(contentToSave);
-                            JOptionPane.showMessageDialog(null, "Файл \"" + fc.getSelectedFile() + "\" успешно сохранен!");
-                        } catch (IOException exeption) {
-                            JOptionPane.showMessageDialog(null, exeption.getLocalizedMessage());
+                            JOptionPane.showMessageDialog(null, "Файл \"" + fc.getSelectedFile() +
+                                    "\" успешно сохранен!");
+                        } catch (IOException exception) {
+                            JOptionPane.showMessageDialog(null, exception.getLocalizedMessage());
                         }
                     }
                     tabbedPane.remove(tabbedPane.indexOfTabComponent(TabPanel.this));
