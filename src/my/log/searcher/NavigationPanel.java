@@ -26,24 +26,26 @@ public class NavigationPanel extends JPanel {
     JButton replaceBtn;
     int searchResultPointer;
     ArrayList<Integer> searchResult = new ArrayList();
+
     /**
      * Простой конструктор класса с размещением кнопок
+     *
      * @param textViewer - передается экземпляр панели с содержимым файла, для навигации
      */
-    public NavigationPanel(TextViewer textViewer){
-        this.textViewer=textViewer;
-        setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
-        searchStr=new JTextField(20);
+    public NavigationPanel(TextViewer textViewer) {
+        this.textViewer = textViewer;
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        searchStr = new JTextField(20);
         searchStr.getDocument().addDocumentListener(new DisableButtons());
-        searchBtn=new JButton("Искать");
+        searchBtn = new JButton("Искать");
         searchBtn.addActionListener(new SearchTextInContent());
-        nextBtn=new JButton("Далее");
+        nextBtn = new JButton("Далее");
         nextBtn.setEnabled(false);
         nextBtn.addActionListener(new NextButtonClick());
-        prevBtn=new JButton("Назад");
+        prevBtn = new JButton("Назад");
         prevBtn.setEnabled(false);
         prevBtn.addActionListener(new PrevButtonClick());
-        replaceBtn=new JButton("Заменить");
+        replaceBtn = new JButton("Заменить");
         replaceBtn.setEnabled(false);
         replaceBtn.addActionListener(new ShowReplaceWindow());
 
@@ -59,24 +61,26 @@ public class NavigationPanel extends JPanel {
     /**
      * Обработчик, отключающий кнопки панели, при фокусе на содержимое файла
      */
-    class DisableReplaceButtonsOnFocus implements FocusListener{
-        public void focusGained(FocusEvent e){
+    class DisableReplaceButtonsOnFocus implements FocusListener {
+        public void focusGained(FocusEvent e) {
             textViewer.textArea.getHighlighter().removeAllHighlights();
             nextBtn.setEnabled(false);
             prevBtn.setEnabled(false);
             replaceBtn.setEnabled(false);
         }
-        public void focusLost(FocusEvent e){
+
+        public void focusLost(FocusEvent e) {
 
         }
     }
+
     /**
      * Обработчик, который ищет вхождения подстроки и записывает их в searchResult
      */
     class SearchTextInContent implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            if(searchStr.getText().length()>0) {
-                searchResultPointer=0;
+            if (searchStr.getText().length() > 0) {
+                searchResultPointer = 0;
                 searchResult.clear();
                 Pattern pattern = Pattern.compile(searchStr.getText());
                 Matcher matcher = pattern.matcher(textViewer.textArea.getText());
@@ -84,77 +88,89 @@ public class NavigationPanel extends JPanel {
                     searchResult.add(matcher.start());
                 }
                 textViewer.textArea.getHighlighter().removeAllHighlights();
-                if(searchResult.size()>0) {
-                    textViewer.infoLabel.setText("Найдено вхождений: "+searchResult.size());
+                if (searchResult.size() > 0) {
+                    textViewer.infoLabel.setText("Найдено вхождений: " + searchResult.size());
                     nextBtn.setEnabled(true);
-                    if(textViewer.endOfFile)
+                    if (textViewer.endOfFile)
                         prevBtn.setEnabled(true);
                     replaceBtn.setEnabled(true);
                     textViewer.textArea.getHighlighter().removeAllHighlights();
-                    for(int position:searchResult){
-                        try{
-                            if(searchResult.indexOf(position)==searchResultPointer)
-                                textViewer.textArea.getHighlighter().addHighlight(position, position+searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
+                    for (int position : searchResult) {
+                        try {
+                            if (searchResult.indexOf(position) == searchResultPointer)
+                                textViewer.textArea.getHighlighter().addHighlight(position, position +
+                                        searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
                             else
-                                textViewer.textArea.getHighlighter().addHighlight(position, position+searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
+                                textViewer.textArea.getHighlighter().addHighlight(position, position +
+                                        searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
                         } catch (BadLocationException e) {
                             JOptionPane.showMessageDialog(null, e.getLocalizedMessage());
                         }
                     }
-                }else{
+                } else {
                     textViewer.infoLabel.setText("<html><font color=red>Вхождений не найдено</font></html>");
                 }
             }
         }
     }
+
     /**
      * Обработчик, увеличивающий searchResultPointer(следующее вхождение)
      */
-    class NextButtonClick implements ActionListener{
+    class NextButtonClick implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            if(searchResult.size()==0){
+            if (searchResult.size() == 0) {
                 textViewer.infoLabel.setText("<html><font color=red>Нет совпадений</font></html>");
                 return;
             }
-            if(searchResultPointer==searchResult.size()-1)
-                searchResultPointer=0;
+            if (searchResultPointer == searchResult.size() - 1)
+                searchResultPointer = 0;
             else
                 searchResultPointer++;
 
             textViewer.textArea.getHighlighter().removeAllHighlights();
-            for(int position:searchResult){
-                try{
-                    if(searchResult.indexOf(position)==searchResultPointer)
-                        textViewer.textArea.getHighlighter().addHighlight(position, position+searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
-                    else
-                        textViewer.textArea.getHighlighter().addHighlight(position, position+searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
+            for (int position : searchResult) {
+                try {
+                    if (searchResult.indexOf(position) == searchResultPointer) {
+                        textViewer.textArea.getHighlighter().addHighlight(position, position +
+                                searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
+                        textViewer.textArea.setCaretPosition(position);
+                    } else {
+                        textViewer.textArea.getHighlighter().addHighlight(position, position +
+                                searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
+                    }
                 } catch (BadLocationException e) {
                     JOptionPane.showMessageDialog(null, e.getLocalizedMessage());
                 }
             }
         }
     }
+
     /**
      * Обработчик, уменьшающий searchResultPointer(предыдущее вхождение)
      */
-    class PrevButtonClick implements ActionListener{
+    class PrevButtonClick implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            if(searchResult.size()==0){
+            if (searchResult.size() == 0) {
                 textViewer.infoLabel.setText("<html><font color=red>Нет совпадений</font></html>");
                 return;
             }
-            if(searchResultPointer==0)
-                searchResultPointer=searchResult.size()-1;
+            if (searchResultPointer == 0)
+                searchResultPointer = searchResult.size() - 1;
             else
                 searchResultPointer--;
 
             textViewer.textArea.getHighlighter().removeAllHighlights();
-            for(int position:searchResult){
-                try{
-                    if(searchResult.indexOf(position)==searchResultPointer)
-                        textViewer.textArea.getHighlighter().addHighlight(position, position+searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
-                    else
-                        textViewer.textArea.getHighlighter().addHighlight(position, position+searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
+            for (int position : searchResult) {
+                try {
+                    if (searchResult.indexOf(position) == searchResultPointer) {
+                        textViewer.textArea.getHighlighter().addHighlight(position, position +
+                                searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
+                        textViewer.textArea.setCaretPosition(position);
+                    } else {
+                        textViewer.textArea.getHighlighter().addHighlight(position, position +
+                                searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
+                    }
                 } catch (BadLocationException e) {
                     JOptionPane.showMessageDialog(null, e.getLocalizedMessage());
                 }
@@ -169,13 +185,16 @@ public class NavigationPanel extends JPanel {
         public void changedUpdate(DocumentEvent e) {
             change();
         }
+
         public void removeUpdate(DocumentEvent e) {
             change();
         }
+
         public void insertUpdate(DocumentEvent e) {
             change();
         }
-        private void change(){
+
+        private void change() {
             nextBtn.setEnabled(false);
             prevBtn.setEnabled(false);
             replaceBtn.setEnabled(false);
@@ -187,7 +206,7 @@ public class NavigationPanel extends JPanel {
     /**
      * Обработчик, создающий экземпляр класса ReplaceWindow - панели замены вхождений
      */
-    class ShowReplaceWindow implements ActionListener{
+    class ShowReplaceWindow implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             JDialog.setDefaultLookAndFeelDecorated(true);
             ReplaceWindow replaceWindow = new ReplaceWindow(textViewer);
