@@ -93,7 +93,8 @@ public class MainWindow{
             if(selectedTextViewer.endOfFile){
                 contentToSave=selectedTextViewer.textArea.getText();
             }else{
-                contentToSave=selectedTextViewer.textArea.getText()+selectedTextViewer.fileContent.substring(selectedTextViewer.finishSymbol,selectedTextViewer.fileContent.length());
+                contentToSave=selectedTextViewer.textArea.getText()+
+                        selectedTextViewer.fileContent.substring(selectedTextViewer.finishSymbol,selectedTextViewer.fileContent.length());
             }
             JFileChooser fc = new JFileChooser();
             fc.setSelectedFile(selectedTextViewer.openedFile);

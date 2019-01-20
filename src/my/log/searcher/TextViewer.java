@@ -1,6 +1,8 @@
 package my.log.searcher;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -27,6 +29,7 @@ public class TextViewer extends JPanel {
     int startSymbol=0;
     int finishSymbol=step;
     boolean endOfFile=false;
+    boolean contentChanged=false;
     //содержимое файла сразу загружается в fileContent
     String fileContent;
 
@@ -65,6 +68,7 @@ public class TextViewer extends JPanel {
             remove(loading);
 
             textArea=new JTextArea();
+            textArea.getDocument().addDocumentListener(new ContentChangedTrue());
             scrollPane=new JScrollPane(textArea);
             add(BorderLayout.CENTER,scrollPane);
             scrollPane.getVerticalScrollBar().addAdjustmentListener(new appendNewContentTextArea());
@@ -85,7 +89,9 @@ public class TextViewer extends JPanel {
         }
         if(start<0)
             start=0;
+        boolean localContentChanged=contentChanged;
         textArea.append(fileContent.substring(start,finish));
+        contentChanged=localContentChanged;
     }
     /**
      * Обработчик, вставляющий контент в TextArea
@@ -111,6 +117,23 @@ public class TextViewer extends JPanel {
                 insertContentPart(startSymbol,finishSymbol);
                 System.out.println(startSymbol+"ОТ ДО"+finishSymbol);
             }
+        }
+    }
+    class ContentChangedTrue implements DocumentListener{
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            contentChanged=true;
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            contentChanged=true;
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            contentChanged=true;
         }
     }
 }
