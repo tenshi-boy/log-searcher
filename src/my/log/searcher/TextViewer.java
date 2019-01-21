@@ -61,11 +61,8 @@ public class TextViewer extends JPanel {
 
     /**
      * Метод вставляет очередную порцию контента в JTextArea
-     *
-     * @param start  - начиная с символа
-     * @param finish - до символа
      */
-    public void insertContentPart(int start, int finish) {
+    public void insertContentPart() {
         if (scrollPane == null) {
             remove(loading);
 
@@ -82,18 +79,18 @@ public class TextViewer extends JPanel {
             add(BorderLayout.SOUTH, infoLabel);
             revalidate();
         }
-        if (finish >= fileContent.length()) {
-            finish = fileContent.length();
+        if (finishSymbol >= fileContent.length()) {
+            finishSymbol = fileContent.length();
             endOfFile = true;
             navPanel.prevBtn.setEnabled(true);
             infoLabel.setText("");
         } else {
             infoLabel.setText("Внимание! Файл загружен не полностью, и будет подгружаться по мере просмотра");
         }
-        if (start < 0)
-            start = 0;
+        if (startSymbol < 0)
+            startSymbol = 0;
         boolean localContentChanged = contentChanged;
-        textArea.append(fileContent.substring(start, finish));
+        textArea.append(fileContent.substring(startSymbol, finishSymbol));
         contentChanged = localContentChanged;
     }
 
@@ -118,7 +115,7 @@ public class TextViewer extends JPanel {
                 doDelayThread.start();
                 startSymbol = finishSymbol;
                 finishSymbol += step;
-                insertContentPart(startSymbol, finishSymbol);
+                insertContentPart();
                 System.out.println(startSymbol + "ОТ ДО" + finishSymbol);
             }
         }
@@ -179,7 +176,7 @@ class ReadingFileThread implements Runnable {
     public void run() {
         try {
             textViewer.fileContent = read(file);
-            textViewer.insertContentPart(textViewer.startSymbol, textViewer.finishSymbol);
+            textViewer.insertContentPart();
 
         } catch (IOException e) {
             //todo закрытие таба
