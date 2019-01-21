@@ -106,8 +106,12 @@ public class ReplaceWindow extends JDialog {
             textViewer.textArea.getHighlighter().removeAllHighlights();
 
             for (int position : textViewer.navPanel.searchResult) {
-                textViewer.textArea.replaceRange(replaceTo.getText(), position, position +
-                        textViewer.navPanel.searchStr.getText().length());
+                if(position<textViewer.finishSymbol) {
+                    textViewer.textArea.replaceRange(replaceTo.getText(), position, position +
+                            textViewer.navPanel.searchStr.getText().length());
+                }else{
+                    textViewer.fileContent.replaceAll(textViewer.navPanel.searchStr.getText(),replaceTo.getText());
+                }
             }
 
             textViewer.navPanel.searchResult.clear();
@@ -123,6 +127,7 @@ public class ReplaceWindow extends JDialog {
      * Класс, увеличивающий указатель textViewer.navPanel.searchResultPointer(следущее вхождение)
      */
     class NextBtnClick implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent event) {
             if (textViewer.navPanel.searchResult.size() == 0) {
                 textViewer.infoLabel.setText("<html><font color=red>Нет совпадений</font></html>");
@@ -132,6 +137,11 @@ public class ReplaceWindow extends JDialog {
                 textViewer.navPanel.searchResultPointer = 0;
             else
                 textViewer.navPanel.searchResultPointer++;
+            if(textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)>textViewer.finishSymbol) {
+                textViewer.startSymbol=textViewer.finishSymbol;
+                textViewer.finishSymbol=textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)+textViewer.step;
+                textViewer.insertContentPart();
+            }
             textViewer.textArea.getHighlighter().removeAllHighlights();
             for (int position : textViewer.navPanel.searchResult) {
                 try {
@@ -154,6 +164,7 @@ public class ReplaceWindow extends JDialog {
      * Класс, заменяющий текущее вхождение - значение textViewer.navPanel.searchResult по индексу textViewer.navPanel.searchResultPointer
      */
     class ReplaceBtnClick implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent event) {
             if (textViewer.navPanel.searchResult.size() == 0) {
                 textViewer.infoLabel.setText("<html><font color=red>Нет совпадений для замены</font></html>");
@@ -178,6 +189,13 @@ public class ReplaceWindow extends JDialog {
                 textViewer.navPanel.prevBtn.setEnabled(false);
                 textViewer.navPanel.replaceBtn.setEnabled(false);
             }
+            if(textViewer.navPanel.searchResult.size()>0 &&
+                    textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)>textViewer.finishSymbol) {
+                textViewer.startSymbol=textViewer.finishSymbol;
+                textViewer.finishSymbol=textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)+textViewer.step;
+                textViewer.insertContentPart();
+            }
+
             textViewer.textArea.getHighlighter().removeAllHighlights();
             for (int position : textViewer.navPanel.searchResult) {
                 try {

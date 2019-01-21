@@ -62,6 +62,7 @@ public class NavigationPanel extends JPanel {
      * Обработчик, отключающий кнопки панели, при фокусе на содержимое файла
      */
     class DisableReplaceButtonsOnFocus implements FocusListener {
+        @Override
         public void focusGained(FocusEvent e) {
             textViewer.textArea.getHighlighter().removeAllHighlights();
             nextBtn.setEnabled(false);
@@ -69,6 +70,7 @@ public class NavigationPanel extends JPanel {
             replaceBtn.setEnabled(false);
         }
 
+        @Override
         public void focusLost(FocusEvent e) {
 
         }
@@ -78,17 +80,24 @@ public class NavigationPanel extends JPanel {
      * Обработчик, который ищет вхождения подстроки и записывает их в searchResult
      */
     class SearchTextInContent implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent event) {
             if (searchStr.getText().length() > 0) {
                 searchResultPointer = 0;
                 searchResult.clear();
                 Pattern pattern = Pattern.compile(searchStr.getText());
-                Matcher matcher = pattern.matcher(textViewer.textArea.getText());
+                Matcher matcher = pattern.matcher(textViewer.textArea.getText()+
+                        textViewer.fileContent.substring(textViewer.finishSymbol));
                 while (matcher.find()) {
                     searchResult.add(matcher.start());
                 }
                 textViewer.textArea.getHighlighter().removeAllHighlights();
                 if (searchResult.size() > 0) {
+                    if(searchResult.get(searchResultPointer)>textViewer.finishSymbol) {
+                        textViewer.startSymbol=textViewer.finishSymbol;
+                        textViewer.finishSymbol=searchResult.get(searchResultPointer)+textViewer.step;
+                        textViewer.insertContentPart();
+                    }
                     textViewer.infoLabel.setText("Найдено вхождений: " + searchResult.size());
                     nextBtn.setEnabled(true);
                     if (textViewer.endOfFile)
@@ -97,12 +106,14 @@ public class NavigationPanel extends JPanel {
                     textViewer.textArea.getHighlighter().removeAllHighlights();
                     for (int position : searchResult) {
                         try {
-                            if (searchResult.indexOf(position) == searchResultPointer)
+                            if (searchResult.indexOf(position) == searchResultPointer) {
                                 textViewer.textArea.getHighlighter().addHighlight(position, position +
                                         searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
-                            else
+                                textViewer.textArea.setCaretPosition(position);
+                            }else {
                                 textViewer.textArea.getHighlighter().addHighlight(position, position +
                                         searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
+                            }
                         } catch (BadLocationException e) {
                             JOptionPane.showMessageDialog(null, e.getLocalizedMessage());
                         }
@@ -118,6 +129,7 @@ public class NavigationPanel extends JPanel {
      * Обработчик, увеличивающий searchResultPointer(следующее вхождение)
      */
     class NextButtonClick implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent event) {
             if (searchResult.size() == 0) {
                 textViewer.infoLabel.setText("<html><font color=red>Нет совпадений</font></html>");
@@ -127,6 +139,11 @@ public class NavigationPanel extends JPanel {
                 searchResultPointer = 0;
             else
                 searchResultPointer++;
+            if(searchResult.get(searchResultPointer)>textViewer.finishSymbol) {
+                textViewer.startSymbol=textViewer.finishSymbol;
+                textViewer.finishSymbol=searchResult.get(searchResultPointer)+textViewer.step;
+                textViewer.insertContentPart();
+            }
 
             textViewer.textArea.getHighlighter().removeAllHighlights();
             for (int position : searchResult) {
@@ -150,6 +167,7 @@ public class NavigationPanel extends JPanel {
      * Обработчик, уменьшающий searchResultPointer(предыдущее вхождение)
      */
     class PrevButtonClick implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent event) {
             if (searchResult.size() == 0) {
                 textViewer.infoLabel.setText("<html><font color=red>Нет совпадений</font></html>");
