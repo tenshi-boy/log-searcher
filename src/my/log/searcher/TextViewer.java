@@ -6,10 +6,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -186,7 +183,7 @@ class ReadingFileThread implements Runnable {
     public synchronized static String read(File file) throws IOException {
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader in = new BufferedReader(new FileReader(file.getAbsoluteFile()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
             String s;
             while ((s = in.readLine()) != null) {
                 sb.append(s);
