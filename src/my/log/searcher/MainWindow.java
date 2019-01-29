@@ -25,6 +25,10 @@ public class MainWindow {
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setSize(800, 600);
         mainWindow.setLocationRelativeTo(null);
+        try {
+            ImageIcon imageIcon = new ImageIcon(this.getClass().getResource("/img/icon-log.png"));
+            mainWindow.setIconImage(imageIcon.getImage());
+        } catch (Exception e) {}
         addMenuButtons();
         mainWindow.setVisible(true);
     }
