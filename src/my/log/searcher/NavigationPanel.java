@@ -26,6 +26,7 @@ public class NavigationPanel extends JPanel {
     JButton replaceBtn;
     int searchResultPointer;
     ArrayList<Integer> searchResult = new ArrayList();
+    final char[] symbolsToScreenedAr={',','.','[',']','{','}','(',')','<','>','*','+','-','=','?','^','$','|','\\'};
 
     /**
      * Простой конструктор класса с размещением кнопок
@@ -85,7 +86,23 @@ public class NavigationPanel extends JPanel {
             if (searchStr.getText().length() > 0) {
                 searchResultPointer = 0;
                 searchResult.clear();
-                Pattern pattern = Pattern.compile(searchStr.getText());
+                StringBuilder screenedSearchStr = new StringBuilder();
+                for(int i=0;i<searchStr.getText().length();i++){
+                    char symbol=searchStr.getText().toCharArray()[i];
+                    boolean sreenedSymbolFinded=false;
+                    for(int j=0;j<symbolsToScreenedAr.length;j++){
+                        if(symbol==symbolsToScreenedAr[j]) {
+                            sreenedSymbolFinded = true;
+                            break;
+                        }
+                    }
+                    if(sreenedSymbolFinded){
+                        screenedSearchStr.append("\\"+symbol);
+                    }else{
+                        screenedSearchStr.append(symbol);
+                    }
+                }
+                Pattern pattern = Pattern.compile("(?iu)"+screenedSearchStr.toString());
                 Matcher matcher = pattern.matcher(textViewer.textArea.getText()+
                         textViewer.fileContent.substring(textViewer.finishSymbol));
                 while (matcher.find()) {
