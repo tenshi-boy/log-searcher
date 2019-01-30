@@ -79,7 +79,8 @@ public class TextViewer extends JPanel {
         if (finishSymbol >= fileContent.length()) {
             finishSymbol = fileContent.length();
             endOfFile = true;
-            navPanel.prevBtn.setEnabled(true);
+            if(navPanel.searchResult.size()>0)
+                navPanel.prevBtn.setEnabled(true);
             infoLabel.setText("");
         } else {
             infoLabel.setText("Внимание! Файл загружен не полностью, и будет подгружаться по мере просмотра");
