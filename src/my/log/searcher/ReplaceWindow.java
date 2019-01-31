@@ -106,11 +106,11 @@ public class ReplaceWindow extends JDialog {
             textViewer.textArea.getHighlighter().removeAllHighlights();
 
             for (int position : textViewer.navPanel.searchResult) {
-                if(position<textViewer.finishSymbol) {
+                if (position < textViewer.getFinishSymbol()) {
                     textViewer.textArea.replaceRange(replaceTo.getText(), position, position +
                             textViewer.navPanel.searchStr.getText().length());
-                }else{
-                    textViewer.fileContent.replaceAll(textViewer.navPanel.searchStr.getText(),replaceTo.getText());
+                } else {
+                    textViewer.fileContent.replaceAll(textViewer.navPanel.searchStr.getText(), replaceTo.getText());
                 }
             }
 
@@ -137,9 +137,9 @@ public class ReplaceWindow extends JDialog {
                 textViewer.navPanel.searchResultPointer = 0;
             else
                 textViewer.navPanel.searchResultPointer++;
-            if(textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)>textViewer.finishSymbol) {
-                textViewer.startSymbol=textViewer.finishSymbol;
-                textViewer.finishSymbol=textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)+textViewer.step;
+            if (textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer) > textViewer.getFinishSymbol()) {
+                textViewer.setStartSymbol(textViewer.getFinishSymbol());
+                textViewer.setFinishSymbol(textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer) + textViewer.step);
                 textViewer.insertContentPart();
             }
             textViewer.textArea.getHighlighter().removeAllHighlights();
@@ -171,7 +171,7 @@ public class ReplaceWindow extends JDialog {
                 return;
             }
             int strLengthDiff = replaceTo.getText().length() - textViewer.navPanel.searchStr.getText().length();
-            ArrayList<Integer> newSearchResult = new ArrayList();
+            ArrayList<Integer> newSearchResult = new ArrayList<>();
             for (int position : textViewer.navPanel.searchResult) {
                 if (textViewer.navPanel.searchResult.indexOf(position) > textViewer.navPanel.searchResultPointer)
                     position = position + strLengthDiff;
@@ -189,10 +189,10 @@ public class ReplaceWindow extends JDialog {
                 textViewer.navPanel.prevBtn.setEnabled(false);
                 textViewer.navPanel.replaceBtn.setEnabled(false);
             }
-            if(textViewer.navPanel.searchResult.size()>0 &&
-                    textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)>textViewer.finishSymbol) {
-                textViewer.startSymbol=textViewer.finishSymbol;
-                textViewer.finishSymbol=textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer)+textViewer.step;
+            if (textViewer.navPanel.searchResult.size() > 0 &&
+                    textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer) > textViewer.getFinishSymbol()) {
+                textViewer.setStartSymbol(textViewer.getFinishSymbol());
+                textViewer.setFinishSymbol(textViewer.navPanel.searchResult.get(textViewer.navPanel.searchResultPointer) + textViewer.step);
                 textViewer.insertContentPart();
             }
 

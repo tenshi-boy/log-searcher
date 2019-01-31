@@ -25,8 +25,8 @@ public class NavigationPanel extends JPanel {
     JButton prevBtn;
     JButton replaceBtn;
     int searchResultPointer;
-    ArrayList<Integer> searchResult = new ArrayList();
-    final char[] symbolsToScreenedAr={',','.','[',']','{','}','(',')','<','>','*','+','-','=','?','^','$','|','\\'};
+    ArrayList<Integer> searchResult = new ArrayList<>();
+    final char[] symbolsToScreenedAr = {',', '.', '[', ']', '{', '}', '(', ')', '<', '>', '*', '+', '-', '=', '?', '^', '$', '|', '\\'};
 
     /**
      * Простой конструктор класса с размещением кнопок
@@ -87,32 +87,32 @@ public class NavigationPanel extends JPanel {
                 searchResultPointer = 0;
                 searchResult.clear();
                 StringBuilder screenedSearchStr = new StringBuilder();
-                for(int i=0;i<searchStr.getText().length();i++){
-                    char symbol=searchStr.getText().toCharArray()[i];
-                    boolean sreenedSymbolFinded=false;
-                    for(int j=0;j<symbolsToScreenedAr.length;j++){
-                        if(symbol==symbolsToScreenedAr[j]) {
-                            sreenedSymbolFinded = true;
+                for (int i = 0; i < searchStr.getText().length(); i++) {
+                    char symbol = searchStr.getText().toCharArray()[i];
+                    boolean sreenedSymbolFound = false;
+                    for (char screenedSymbol : symbolsToScreenedAr) {
+                        if (symbol == screenedSymbol) {
+                            sreenedSymbolFound = true;
                             break;
                         }
                     }
-                    if(sreenedSymbolFinded){
-                        screenedSearchStr.append("\\"+symbol);
-                    }else{
+                    if (sreenedSymbolFound) {
+                        screenedSearchStr.append("\\" + symbol);
+                    } else {
                         screenedSearchStr.append(symbol);
                     }
                 }
-                Pattern pattern = Pattern.compile("(?iu)"+screenedSearchStr.toString());
-                Matcher matcher = pattern.matcher(textViewer.textArea.getText()+
-                        textViewer.fileContent.substring(textViewer.finishSymbol));
+                Pattern pattern = Pattern.compile("(?iu)" + screenedSearchStr.toString());
+                Matcher matcher = pattern.matcher(textViewer.textArea.getText() +
+                        textViewer.fileContent.substring(textViewer.getFinishSymbol()));
                 while (matcher.find()) {
                     searchResult.add(matcher.start());
                 }
                 textViewer.textArea.getHighlighter().removeAllHighlights();
                 if (searchResult.size() > 0) {
-                    if(searchResult.get(searchResultPointer)>textViewer.finishSymbol) {
-                        textViewer.startSymbol=textViewer.finishSymbol;
-                        textViewer.finishSymbol=searchResult.get(searchResultPointer)+textViewer.step;
+                    if (searchResult.get(searchResultPointer) > textViewer.getFinishSymbol()) {
+                        textViewer.setStartSymbol(textViewer.getFinishSymbol());
+                        textViewer.setFinishSymbol(searchResult.get(searchResultPointer) + textViewer.step);
                         textViewer.insertContentPart();
                     }
                     textViewer.infoLabel.setText("Найдено вхождений: " + searchResult.size());
@@ -127,7 +127,7 @@ public class NavigationPanel extends JPanel {
                                 textViewer.textArea.getHighlighter().addHighlight(position, position +
                                         searchStr.getText().length(), new DefaultHighlighter.DefaultHighlightPainter(Color.gray));
                                 textViewer.textArea.setCaretPosition(position);
-                            }else {
+                            } else {
                                 textViewer.textArea.getHighlighter().addHighlight(position, position +
                                         searchStr.getText().length(), DefaultHighlighter.DefaultPainter);
                             }
@@ -156,9 +156,9 @@ public class NavigationPanel extends JPanel {
                 searchResultPointer = 0;
             else
                 searchResultPointer++;
-            if(searchResult.get(searchResultPointer)>textViewer.finishSymbol) {
-                textViewer.startSymbol=textViewer.finishSymbol;
-                textViewer.finishSymbol=searchResult.get(searchResultPointer)+textViewer.step;
+            if (searchResult.get(searchResultPointer) > textViewer.getFinishSymbol()) {
+                textViewer.setStartSymbol(textViewer.getFinishSymbol());
+                textViewer.setFinishSymbol(searchResult.get(searchResultPointer) + textViewer.step);
                 textViewer.insertContentPart();
             }
 
@@ -244,7 +244,7 @@ public class NavigationPanel extends JPanel {
     class ShowReplaceWindow implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             JDialog.setDefaultLookAndFeelDecorated(true);
-            ReplaceWindow replaceWindow = new ReplaceWindow(textViewer);
+            new ReplaceWindow(textViewer);
         }
     }
 }
