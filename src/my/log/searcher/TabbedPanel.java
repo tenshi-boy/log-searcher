@@ -15,7 +15,7 @@ import java.util.ArrayList;
  */
 public class TabbedPanel extends JPanel {
     JTabbedPane tabbedPane = new JTabbedPane();
-    static ArrayList<File> openedFiles = new ArrayList();
+    static ArrayList<File> openedFiles = new ArrayList<>();
 
     /**
      * Простой конструктор
@@ -30,7 +30,7 @@ public class TabbedPanel extends JPanel {
     /**
      * Метод для удаления записи из списка открытых файлов
      *
-     * @param file
+     * @param file - файл с содержимым которого был закрыт таб
      */
     public static void removeFromOpenedFiles(File file) {
         openedFiles.remove(file);
@@ -39,7 +39,7 @@ public class TabbedPanel extends JPanel {
     /**
      * Метод, добавляющий в TabbedPanel новый таб с панелью открытого файла - экземпляром TextViewer и табкомпонентом - экземпляром TabPanel
      *
-     * @param file
+     * @param file - открываемый файл
      */
     public void openFileInNewTab(File file) {
         if (file.isDirectory())
@@ -62,7 +62,7 @@ class TabPanel extends JPanel {
     /**
      * Конструктор класса, добавляющий кнопку закрытия
      *
-     * @param file
+     * @param file       - используется для лейбла таба, и в событии закрытия таба
      * @param tabbedPane - передается экземпляр панели, что бы была возможность удалять таб с этой панели
      */
     public TabPanel(File file, JTabbedPane tabbedPane) {
@@ -99,7 +99,7 @@ class TabPanel extends JPanel {
                         contentToSave = currentTextViewer.textArea.getText();
                     } else {
                         contentToSave = currentTextViewer.textArea.getText() +
-                                currentTextViewer.fileContent.substring(currentTextViewer.finishSymbol);
+                                currentTextViewer.fileContent.substring(currentTextViewer.getFinishSymbol());
                     }
                     JFileChooser fc = new JFileChooser();
                     fc.setSelectedFile(currentTextViewer.openedFile);
