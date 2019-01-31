@@ -22,9 +22,9 @@ public class TextViewer extends JPanel {
     NavigationPanel navPanel;
     JLabel infoLabel;
     //количество символов, добавляемых при прокрутке до 95% JScrollPane
-    int step = 5000000;
-    int startSymbol = 0;
-    int finishSymbol = step;
+    final int step = 5000000;
+    private int startSymbol = 0;
+    private int finishSymbol = step;
     boolean endOfFile = false;
     boolean contentChanged = false;
     //содержимое файла сразу загружается в fileContent
@@ -79,7 +79,7 @@ public class TextViewer extends JPanel {
         if (finishSymbol >= fileContent.length()) {
             finishSymbol = fileContent.length();
             endOfFile = true;
-            if(navPanel.searchResult.size()>0)
+            if (navPanel.searchResult.size() > 0)
                 navPanel.prevBtn.setEnabled(true);
             infoLabel.setText("");
         } else {
@@ -119,6 +119,9 @@ public class TextViewer extends JPanel {
         }
     }
 
+    /**
+     * Обработчик, выставляющий флаг contentChanged, указывающий на то, что файл изменен и его необходимо сохранить
+     */
     class ContentChangedTrue implements DocumentListener {
 
         @Override
@@ -135,6 +138,31 @@ public class TextViewer extends JPanel {
         public void changedUpdate(DocumentEvent e) {
             contentChanged = true;
         }
+    }
+
+    //геттеры и сеттеры предупреждающие ошибки с fileContent.substring()
+    public int getStartSymbol() {
+        return startSymbol;
+    }
+
+    public int getFinishSymbol() {
+        return finishSymbol;
+    }
+
+    public void setStartSymbol(int startSymbolArg) {
+        if (startSymbolArg > finishSymbol)
+            startSymbol = finishSymbol;
+        else
+            startSymbol = startSymbolArg;
+    }
+
+    public void setFinishSymbol(int finishSymbolArg) {
+        if (finishSymbolArg > startSymbol)
+            finishSymbol = finishSymbolArg;
+        else
+            finishSymbol = startSymbol + step;
+        if (finishSymbol > fileContent.length())
+            finishSymbol = fileContent.length();
     }
 }
 
