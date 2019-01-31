@@ -28,7 +28,8 @@ public class MainWindow {
         try {
             ImageIcon imageIcon = new ImageIcon(this.getClass().getResource("/img/icon-log.png"));
             mainWindow.setIconImage(imageIcon.getImage());
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         addMenuButtons();
         mainWindow.setVisible(true);
     }
@@ -102,7 +103,7 @@ public class MainWindow {
                 contentToSave = selectedTextViewer.textArea.getText();
             } else {
                 contentToSave = selectedTextViewer.textArea.getText() +
-                        selectedTextViewer.fileContent.substring(selectedTextViewer.finishSymbol);
+                        selectedTextViewer.fileContent.substring(selectedTextViewer.getFinishSymbol());
             }
             JFileChooser fc = new JFileChooser();
             fc.setSelectedFile(selectedTextViewer.openedFile);
