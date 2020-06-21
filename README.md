@@ -1,4 +1,4 @@
-# log-searcher - тестовое задание
+# log-searcher
 Java программа для поиска текста в файлах.
 ![search](https://user-images.githubusercontent.com/46074995/52914147-e309bd80-32d5-11e9-971d-10dde125cc4a.JPG)
 ## Функциональные возможности:
